@@ -3,6 +3,8 @@ import Sidebar from "./components/Sidebar"
 import ProductviewPage from "./pages/ProductviewPage"
 import OverviewPage from "./pages/OverviewPage";
 import SettingsPage from "./pages/SettingsPage";
+import SalesPage from "./pages/SalesPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 function App() {
 
@@ -17,7 +19,8 @@ function App() {
       <Routes>
         <Route path="/" element= {<OverviewPage />} />
         <Route path="/products" element= {<ProductviewPage />} />
-        <Route path="/sales" element= {<ProductviewPage />} />
+        <Route path="/sales" element= {<SalesPage />} />
+        <Route path="/analytics" element= {<AnalyticsPage />} />
         <Route path="/settings" element= {<SettingsPage />} />
       </Routes>
     </div>
