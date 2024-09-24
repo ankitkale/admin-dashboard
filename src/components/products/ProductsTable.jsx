@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Edit, Search, Target, Trash2 } from "lucide-react";
+import { Edit, Search, Target, Trash2, Filter } from "lucide-react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 
@@ -47,6 +47,11 @@ const PRODUCT_DATA = [
 ];
 
 const ProductsTable = () => {
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const toggleFilters = () => {
+    setFiltersVisible(!filtersVisible);
+  };
+
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(PRODUCT_DATA);
@@ -149,7 +154,11 @@ const ProductsTable = () => {
       </div>
 
       <div className="flex w-full justify-between items-center">
-        <div className="flex flex-row gap-8">
+        <div className="md:hidden flex items-center select-none border-2 bg-blue-700 border-blue-300 text-white active:bg-blue-600 active:text-white px-4 py-1 text-sm rounded-lg">
+          <Filter size={16} />
+          <button>filters</button>
+        </div>
+        <div className="hidden md:flex flex-row gap-8">
         <div>
           <select
             onChange={handleCategoryChange}
