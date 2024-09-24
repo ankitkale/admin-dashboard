@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { Edit, Search, Target, Trash2 } from "lucide-react";
 import { useState } from "react";
+import * as XLSX from "xlsx";
 
 const PRODUCT_DATA = [
   {
     id: 1,
     name: "Wireless Earbuds",
     category: "Electronics",
-    price: 59.99,
+    price: 1699,
     stock: 143,
     sales: 1200,
   },
@@ -15,7 +16,7 @@ const PRODUCT_DATA = [
     id: 2,
     name: "Leather Wallet",
     category: "Accessories",
-    price: 39.99,
+    price: 1099,
     stock: 89,
     sales: 800,
   },
@@ -23,7 +24,7 @@ const PRODUCT_DATA = [
     id: 3,
     name: "Smart Watch",
     category: "Electronics",
-    price: 199.99,
+    price: 1999,
     stock: 0,
     sales: 650,
   },
@@ -31,7 +32,7 @@ const PRODUCT_DATA = [
     id: 4,
     name: "Yoga Mat",
     category: "Fitness",
-    price: 29.99,
+    price: 499,
     stock: 210,
     sales: 950,
   },
@@ -39,7 +40,7 @@ const PRODUCT_DATA = [
     id: 5,
     name: "Coffee Maker",
     category: "Home",
-    price: 79.99,
+    price: 899,
     stock: 78,
     sales: 720,
   },
@@ -47,51 +48,82 @@ const PRODUCT_DATA = [
 
 const ProductsTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(PRODUCT_DATA);
   const [inStock, setInStock] = useState(false);
-  const [price, setPrice] = useState(200);
+  const [price, setPrice] = useState(2000);
 
-  
-  const filterProducts = (term, selectedPrice, stockFilter) => {
+  const filterProducts = (
+    term,
+    selectedPrice,
+    stockFilter,
+    selectedCategory
+  ) => {
     const filtered = PRODUCT_DATA.filter((product) => {
-      const matchesSearch = 
+      const matchesSearch =
         product.name.toLowerCase().includes(term) ||
         product.category.toLowerCase().includes(term);
-      
+
       const matchesPrice = product.price <= selectedPrice;
-      
-      
+
       const matchesStock = stockFilter ? product.stock > 0 : true;
 
-      return matchesSearch && matchesPrice && matchesStock;
+      const matchesCategory =
+        selectedCategory === "" || product.category === selectedCategory;
+
+      return matchesSearch && matchesPrice && matchesStock && matchesCategory;
     });
     setFilteredProducts(filtered);
   };
 
-  
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
 
-    filterProducts(term, price, inStock);
+    filterProducts(term, price, inStock, category);
   };
 
-  
+  const handleCategoryChange = (e) => {
+    const selectedCategory = e.target.value;
+    setCategory(selectedCategory);
+
+    filterProducts(searchTerm, price, inStock, selectedCategory);
+  };
+
   const handleCheckBox = (e) => {
     const checked = e.target.checked;
     setInStock(checked);
 
-    filterProducts(searchTerm, price, checked);
+    filterProducts(searchTerm, price, checked, category);
   };
 
-  
   const handlePrice = (e) => {
     const selectedPrice = Number(e.target.value);
     setPrice(selectedPrice);
 
-    filterProducts(searchTerm, selectedPrice, inStock);
+    filterProducts(searchTerm, selectedPrice, inStock, category);
   };
+
+  const exportToExcel = () => {
+    // Table data
+    const data = filteredProducts.map((product) => ({
+      Name: product.name,
+      Category: product.category,
+      Price: product.price,
+      Stock: product.stock,
+      Sales: product.sales,
+    }));
   
+    // Create a new workbook and worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+  
+    // Append the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+  
+    // Export to Excel file
+    XLSX.writeFile(workbook, "products_data.xlsx");
+  };
 
   return (
     <motion.div
@@ -100,8 +132,11 @@ const ProductsTable = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-semibold text-gray-100">Products List</h2>
+      <div className="flex justify-between items-center mb-2 flex-col sm:flex-row">
+        <h2 className="text-xl font-semibold text-gray-100 mb-4 sm:mb-0">
+          Products List
+        </h2>
+
         <div className="relative">
           <input
             type="text"
@@ -113,6 +148,51 @@ const ProductsTable = () => {
         </div>
       </div>
 
+      <div className="flex w-full justify-between items-center">
+        <div className="flex flex-row gap-8">
+        <div>
+          <select
+            onChange={handleCategoryChange}
+            className="bg-gray-700 text-white px-2 py-1 rounded-lg focus:outline-none"
+          >
+            <option value="">All</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Home">Home</option>
+          </select>
+        </div>
+        <div className="flex flex-col-reverse">
+          <label className="text-sm" htmlFor="price">
+            price upto ₹{price}
+          </label>
+          <input
+            type="range"
+            name="price"
+            min={500}
+            max={2000}
+            step="100"
+            id=""
+            value={price}
+            onChange={handlePrice}
+          />
+        </div>
+        <div>
+          <label htmlFor="avaliable" className="select-none mr-2">
+            In Sotck
+          </label>
+          <input
+            type="checkbox"
+            id="avaliable"
+            name="avaliable"
+            onChange={handleCheckBox}
+            checked={inStock}
+          />
+        </div>
+        </div>
+        <button onClick={exportToExcel} className="border-2 border-green-700 text-green-500 active:bg-green-600 active:text-white px-4 py-1 text-sm rounded-lg">Export to Excel</button>
+      </div>
+
       <div className="overflow-x-auto pt-8">
         <table className="min-w-full divide-y divide-gray-700">
           <thead>
@@ -122,32 +202,12 @@ const ProductsTable = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider relative">
                 Category
-                <div className="absolute top-[-26px] left-0">
-                  <select
-                    onChange={handleSearch}
-                    className="bg-gray-700 text-white px-2 py-1 rounded-lg"
-                  >
-                    <option value="">All</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Accessories">Accessories</option>
-                    <option value="Fitness">Fitness</option>
-                    <option value="Home">Home</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider relative">
                 Price
-                <span> upto ₹{price}</span>
-                <div className="absolute top-[-22px] left-0">
-                  <input type="range" name="price" min={40} max={200} step="20" id="" value={price} onChange={handlePrice} />
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider relative">
                 Stock
-                <div className="absolute top-[-22px] left-0 flex justify-between items-center">
-                  <label htmlFor="avaliable" className="select-none mr-2">In Sotck</label>
-                  <input type="checkbox" id="avaliable" name="avaliable" onChange={handleCheckBox} checked={inStock}/>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Sales
@@ -177,7 +237,7 @@ const ProductsTable = () => {
                   {product.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                ₹{product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                   {product.stock}
